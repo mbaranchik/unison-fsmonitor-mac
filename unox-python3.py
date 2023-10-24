@@ -156,11 +156,13 @@ def startReplicaMon(replica, fspath, path):
         if _in_debug: _debug("start monitoring of replica [" + replica + "] [" + fspath + "]")
         def replicaFileEventCallback(path, mask):
             try:
-                if not path.startswith(fspath):
-                    return warn("unexpected file event at path [" + path + "] for [" + fspath + "]")
-                local_path = path[len(fspath):]
+                real_fspath = os.path.realpath(fspath)
+                real_path = os.path.realpath(path)
+                if not real_path.startswith(real_fspath):
+                    return warn("unexpected file event at path [" + real_path + "] for [" + real_fspath + "]")
+                local_path = real_path[len(real_fspath):]
                 local_path_toks = pathTokenize(local_path)
-                if _in_debug: _debug("replica:[" + replica + "] file event @[" + local_path + "] (" + path + ")")
+                if _in_debug: _debug("replica:[" + replica + "] file event @[" + local_path + "] (" + real_path + ")")
                 triggerReplica(replica, local_path_toks)
             except Exception as e:
                 # Because python is a horrible language it has a special behavior for non-main threads that
